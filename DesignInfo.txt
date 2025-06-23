@@ -8,7 +8,7 @@ Handles CPU read/write requests, detects hits/misses, and interfaces with memory
 
 Architecture:
 - Word-addressable direct-mapped cache
-- One block per line (1 word/block) ; This might be changed in the future
+- One block per line (1 word/block) 
 - FSM-based control for miss/refill handling
 
 Main Components:
