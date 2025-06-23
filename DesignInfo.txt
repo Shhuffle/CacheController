@@ -40,7 +40,27 @@ Operation Summary:
 - On hit: return data or write into cache
 - On miss: stall CPU, fetch data from memory, refill cache
 
-Industry Relevance:
-- Models L1 cache behavior found in SoC CPUs
-- Useful for RTL design and verification interviews
+
+Bit Split 
+[ TAG (11 bits) | INDEX (18 bits) | OFFSET (3 bits) ]
+<--------------------- 32 bits -------------------->
+
+Size calculation 
+1. Primary memory 
+The total size of our primary memory is 2^32 = 4GB with word size of 1 byte
+Since 3 bits are used as offset bits, total block size = 64bit 
+Total number of blocks = 4GB / 64bit = 512 * 2^20 
+
+2.Cache memory 
+As we know, block size = line size = 64 bit. Our Cache will return or write 64 bit data which means word size of cache is 64 bit.
+18 bits are used to represent lines. The total number of lines present = 256 * 2^10.
+Cache size = Number of lines * line size = 256 * 2^10 * 64 = 16Mb.
+
+
+
+
+
+
+
+
 
