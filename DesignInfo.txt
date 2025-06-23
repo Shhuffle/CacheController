@@ -1,1 +1,46 @@
- 
+This repo will module a Cache Contoller and testbench using system verilog to test the design implementation. 
+
+Project: Direct-Mapped Cache Controller (SystemVerilog)
+
+Overview:
+Implements a cache controller for a single direct-mapped cache.
+Handles CPU read/write requests, detects hits/misses, and interfaces with memory on misses.
+
+Architecture:
+- Word-addressable direct-mapped cache
+- One block per line (1 word/block) ; This might be changed in the future
+- FSM-based control for miss/refill handling
+
+Main Components:
+1. tag_array      : Stores tag bits for each cache line
+2. valid_array    : Indicates validity of each cache line
+3. data_array     : Stores actual cache data
+4. index, tag     : Extracted from CPU address
+
+Signal Interface:
+
+[CPU Interface]
+- input  clk           : Clock
+- input  rst           : Reset
+- input  addr[31:0]    : CPU address
+- input  wr_data[31:0] : Data to write
+- input  rd_en         : Read enable
+- input  wr_en         : Write enable
+- output rd_data[31:0] : Data from cache
+- output hit           : Cache hit flag
+- output stall         : CPU stall signal (on miss/refill)
+
+[Memory Interface]
+- output mem_rd_en     : Memory read enable on miss
+- output mem_addr[31:0]: Address to memory
+- input  mem_data[31:0]: Data returned from memory
+- input  mem_data_valid: Memory data ready signal
+
+Operation Summary:
+- On hit: return data or write into cache
+- On miss: stall CPU, fetch data from memory, refill cache
+
+Industry Relevance:
+- Models L1 cache behavior found in SoC CPUs
+- Useful for RTL design and verification interviews
+
