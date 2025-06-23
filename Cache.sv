@@ -10,20 +10,22 @@ logic [63:0] cachemem [0:NUM_LINES-1]; //cache memory
 logic [17:0] index;
 
 
-typedef enum logic [1:0] {
+typedef enum logic [2:0] {
     IDLE,
     WRITE,
     READ,
-    STALL
+    MISS,
+    REFILL
 }state_t;
 
 state_t current_state, next_state;
+assign index = intf.addr[20:3];
 
-assign index = intf.addr[19:2];
 typedef enum logic {
     hit,
     miss
 } tagHitorMiss;
+
 
 function void CacheStatus(ref tagHitorMiss t);
     t = miss;
@@ -49,12 +51,14 @@ always_comb begin
 end
 
 
-
 always_ff @(posedge intf.clk or negedge intf.rst) begin 
     if(!intf.rst) begin
-        foreach (valid_array[i]) begin //reset will earse all the value at the cache tag and its value so the value is invalid
-            valid_array[i] <= 1'b0;
+        foreach (tag_array[i]) begin
+            tag_array[i] <= 0;
+            cachemem[i] <= 0;
+            valid_array[i] <=0;
         end
+
             intf.hit <= 0;
             intf.stall <= 0;
             intf.rd_data <= 0;
@@ -67,26 +71,28 @@ always_ff @(posedge intf.clk or negedge intf.rst) begin
 end
 
 
-
 always_comb begin
     case(current_state)
     IDLE : begin 
-            if(intf.wr_en) 
-                next_state = WRITE;
-            else if(intf.rd_en)
-                next_state = READ;
-            else if(intf.mem_rd_en)
-                next_state = STALL;
+            if (intf.rd_en && t_hit_miss == miss)
+            next_state = MISS;
+            else if (intf.rd_en && t_hit_miss == hit)
+            next_state = READ;
+            else if (intf.wr_en && t_hit_miss == miss)
+            next_state = MISS;
+            else if (intf.wr_en && t_hit_miss == hit)
+            next_state = WRITE;
+            else
+            next_state = IDLE;
         end
-
     WRITE : begin 
         if(t_hit_miss == hit)
         begin 
             cachemem[index] = intf.wr_data;
+            valid_array[index]=1'b1; // After successfull write indicating that the data at that location is valid
         end
         next_state = IDLE;
     end
-
     READ : begin 
         if(t_hit_miss == hit)
         begin
@@ -94,7 +100,36 @@ always_comb begin
         end
         next_state = IDLE;
     end
+    MISS: begin 
+            intf.stall = 1'b1;
+            intf.mem_rd_en = 1'b1;
+            intf.mem_addr = intf.addr;
+
+            if(intf.mem_data_valid) //stay in this state till the data is received form the memory
+                next_state = REFILL;
+            else 
+                next_state = MISS;
+        end
+    REFILL: begin 
+            cachemem[index] = intf.mem_data;
+            tag_array[index] = intf.addr[31:21];
+            valid_array[index] = 1'b1;
+
+
+            intf.stall = 1'b0;
+            intf.mem_rd_en = 1'b0;
+
+            if(intf.rd_en) begin 
+                intf.rd_data = intf.mem_data;
+            end
+            next_state = IDLE;
+        end
     default: next_state = IDLE;
    endcase
 end
 endmodule
+
+
+
+
+
