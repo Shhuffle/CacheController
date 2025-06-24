@@ -10,4 +10,6 @@ modport CacheController(input addr,rd_en,wr_en,wr_data,mem_data,mem_data_valid,c
 modport Pmem(input clk, rst,mem_rd_en,mem_addr,
             output mem_data,mem_data_valid);
 
+modport CPU(input clk, rst , hit , stall ,rd_data,
+            output addr,rd_en,wr_data,wr_en);
 endinterface
