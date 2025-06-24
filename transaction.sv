@@ -9,7 +9,9 @@ bit mem_data_valid;
 bit [63:0] rd_data_from_cache; //data read form the cache memory
 bit hit , stall, mem_rd_en;
 bit [31:0] mem_addr;
-
+bit [63:0] mem_wd_data;
+bit mem_wd_en
+bit men_wd_valid;
 
 //to allow only read or write in one clock cycle
 constraint validRW {

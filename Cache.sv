@@ -9,12 +9,22 @@ logic                 valid_array [0:NUM_LINES-1]; //It will indicate if the dat
 logic [63:0] cachemem [0:NUM_LINES-1]; //cache memory
 logic [17:0] index;
 
+logic was_wmiss, was_wmiss_next; //will be used in the state case. IF 0 then the refill will of read type and if 1 then the refill state will of write type
+
+always_ff @(posedge intf.clk or negedge intf.rst) begin
+    if (!intf.rst) begin
+        was_wmiss <= 1'b0;
+    end else begin
+        was_wmiss <= was_wmiss_next;
+    end
+end
 
 typedef enum logic [2:0] {
     IDLE,
     WRITE,
     READ,
-    MISS,
+    RMISS,
+    WMISS,
     REFILL
 }state_t;
 
@@ -62,6 +72,10 @@ always_ff @(posedge intf.clk or negedge intf.rst) begin
             intf.hit <= 0;
             intf.stall <= 0;
             intf.rd_data <= 0;
+            intf.mem_rd_en <= 0;
+            intf.mem_wd_en <=0;
+            intf.mem_data_valid <=0;
+            intf.mem_wd_valid <=0;
 
         current_state <= IDLE;
     end
@@ -75,24 +89,22 @@ always_comb begin
     case(current_state)
     IDLE : begin 
             if (intf.rd_en && t_hit_miss == miss)
-            next_state = MISS;
+            next_state = RMISS;
             else if (intf.rd_en && t_hit_miss == hit)
             next_state = READ;
             else if (intf.wr_en && t_hit_miss == miss)
-            next_state = MISS;
+            next_state = WMISS;
             else if (intf.wr_en && t_hit_miss == hit)
             next_state = WRITE;
             else
             next_state = IDLE;
         end
     WRITE : begin 
-        if(t_hit_miss == hit)
-        begin 
             cachemem[index] = intf.wr_data;
             valid_array[index]=1'b1; // After successfull write indicating that the data at that location is valid
+            next_state = IDLE;
         end
-        next_state = IDLE;
-    end
+    
     READ : begin 
         if(t_hit_miss == hit)
         begin
@@ -100,18 +112,41 @@ always_comb begin
         end
         next_state = IDLE;
     end
-    MISS: begin 
+    RMISS: begin 
             intf.stall = 1'b1;
             intf.mem_rd_en = 1'b1;
             intf.mem_addr = intf.addr;
 
-            if(intf.mem_data_valid) //stay in this state till the data is received form the memory
+            if(intf.mem_data_valid) 
                 next_state = REFILL;
             else 
-                next_state = MISS;
+                next_state = RMISS;//stay in this state till the data is received form the memory
+
+            was_wmiss_next= 1'b0;
         end
+
+    WMISS: begin 
+            intf.stall = 1'b1;
+            intf.mem_wd_en = 1'b1;
+            intf.mem_addr = intf.addr;
+            intf.mem_wd_data = intf.wr_data;
+
+
+            if(intf.mem_wd_valid) 
+                next_state = REFILL;
+            else 
+                next_state = WMISS ; //stay in this state untill the data is written back to the primary memory.
+
+             was_wmiss_next = 1'b1;
+            end
+
     REFILL: begin 
-            cachemem[index] = intf.mem_data;
+
+            if(!was_wmiss)
+                cachemem[index] = intf.mem_data;
+            else if(was_wmiss)
+                cachemem[index] = intf.wr_data;
+
             tag_array[index] = intf.addr[31:21];
             valid_array[index] = 1'b1;
 
