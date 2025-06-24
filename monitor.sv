@@ -1,9 +1,9 @@
 class monitor;
-mailbox #(transaction) env2scb;
+mailbox #(transaction) mon2scb;
 virtual TopIf vif;
 
-function new(mailbox #(transaction) env2scb,virtual TopIf vif);
-    this.env2scb = env2scb;
+function new(mailbox #(transaction) mon2scb,virtual TopIf vif);
+    this.mon2scb = mon2scb;
     this.vif = vif;
 endfunction
 
@@ -25,7 +25,7 @@ task run();
             t.mem_rd_en = vif.mem_rd_en;
             t.mem_addr = vif.mem_addr;
 
-            env2scb.put(t);
+            mon2scb.put(t);
             if(vif.mem_rd_en) 
                 $display("[MON] @%0t: Reading from Pmem, addr = 0x%h", $time, vif.mem_addr);
                     
@@ -34,7 +34,4 @@ task run();
         end
     end
 endtask
-
-
-
 endclass
