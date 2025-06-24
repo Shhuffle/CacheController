@@ -1,14 +1,14 @@
 class transaction;
-randc logic [31:0] addr;
-rand logic wr_en,rd_en;
-rand logic [63:0] wr_data;
+randc bit [31:0] addr;
+rand bit wr_en,rd_en;
+rand bit [63:0] wr_data;
 
 //variable to store some output of the cache and the input of the memory, will be used in monitor and scoreboard.
-logic [63:0] mem_data; //data read form the primary memory
-logic mem_data_valid;
-logic [63:0] rd_data_from_cache; //data read form the cache memory
-logic hit , stall, mem_rd_en;
-logic [31:0] mem_addr;
+bit [63:0] mem_data; //data read form the primary memory
+bit mem_data_valid;
+bit [63:0] rd_data_from_cache; //data read form the cache memory
+bit hit , stall, mem_rd_en;
+bit [31:0] mem_addr;
 
 
 //to allow only read or write in one clock cycle
