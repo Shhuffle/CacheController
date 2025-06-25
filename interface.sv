@@ -9,7 +9,7 @@ modport CacheController(input addr,rd_en,wr_en,wr_data,mem_data,mem_data_valid,c
                         );
 
 modport Pmem(input clk, rst,mem_rd_en,mem_addr,mem_wd_data,mem_wd_en,
-            output mem_data,mem_data_valid);
+            output mem_data,mem_data_valid,mem_wd_valid);
 
 
 endinterface

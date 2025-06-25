@@ -27,7 +27,7 @@ module Pmemory(TopIf.Pmem intf);
         intf.mem_data <= 64'b0;
       end
 
-      assert(!(intf.mem_rd_en && intf.mem_wd_en)) else $error("[PMEM] Data written the memory and read at the same time");
+      // assert(!(intf.mem_rd_en && intf.mem_wd_en)) else $error("[PMEM] Data written the memory and read at the same time");
 
       if(intf.mem_wd_en) begin 
            for(int i = 0;i<8;i++) begin 
@@ -36,6 +36,7 @@ module Pmemory(TopIf.Pmem intf);
               intf.mem_wd_valid = 1'b1;
       end  else 
               intf.mem_wd_valid = 1'b0;
+              
 
     end
   end

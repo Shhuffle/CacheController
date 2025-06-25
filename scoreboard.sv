@@ -12,12 +12,14 @@ class scoreboard;
     endfunction 
 
     task run();
+         int cache_idx,mem_idx;
+         logic [63:0] expected;
         forever begin 
             transaction t = new();
             mon2scb.get(t);
 
-            int cache_idx = t.addr[20:3];
-            int mem_idx   = t.mem_addr[20:3];
+            cache_idx = t.addr[20:3];
+            mem_idx   = t.mem_addr[20:3];
 
             if (t.hit) begin
                 if (t.wr_en) begin
@@ -27,15 +29,15 @@ class scoreboard;
                 end
 
                 if (t.rd_en) begin
-                    if (ref_cachemem[cache_idx] !== t.rd_data)
-                        $error("[SCB] Cache read mismatch! Expected: %h, Got: %h", ref_cachemem[cache_idx], t.rd_data);
+                    if (ref_cachemem[cache_idx] !== t.rd_data_from_cache)
+                        $error("[SCB] Cache read mismatch! Expected: %h, Got: %h", ref_cachemem[cache_idx], t.rd_data_from_cache);
                 end
 
             end else if (t.stall) begin
                 if (t.mem_data_valid) begin 
                     ref_cachemem[mem_idx] = t.mem_data;
 
-                    logic [63:0] expected = 64'b0;
+                    expected = 64'b0;
                     for (int i = 0; i < 8; i++)
                         expected[8*i +: 8] = ref_Pmem[t.mem_addr + i];
 

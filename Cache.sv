@@ -37,7 +37,7 @@ typedef enum logic {
 } tagHitorMiss;
 
 
-function void CacheStatus(ref tagHitorMiss t);
+function automatic CacheStatus(ref tagHitorMiss t);
     t = miss;
     intf.hit = 1'b0;
     if (tag_array[index] == intf.addr[31:21]) 
@@ -63,17 +63,7 @@ end
 
 always_ff @(posedge intf.clk or negedge intf.rst) begin 
     if(!intf.rst) begin
-        foreach (tag_array[i]) begin
-            tag_array[i] <= 0;
-            cachemem[i] <= 0;
-            valid_array[i] <=0;
-        end
-
             intf.hit <= 0;
-            intf.stall <= 0;
-            intf.rd_data <= 0;
-            intf.mem_rd_en <= 0;
-            intf.mem_wd_en <=0;
             intf.mem_data_valid <=0;
             intf.mem_wd_valid <=0;
 
